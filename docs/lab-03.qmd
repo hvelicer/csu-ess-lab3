@@ -1,0 +1,65 @@
+---
+title: "ESS 330 Lab 3: COVID-19 Wrangling"
+author:
+  - name: "[Hanna Velicer](https://hvelicer.github.io/)"
+    email: "hvelicer@colostate.edu"
+format: html
+execute: 
+  echo: true
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+## Question 1: Public Data
+
+**Reading in the public COVID-19 dataset (for this lab we will use the historic, county level data).**
+```{r}
+data <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+```
+
+## Question 2: Daily Summary
+
+**Monitor condition #2 (more than 100 new cases per 100,000 residents over the past 14 days). Set up a reproducible framework to communicate the following in a way that can be updated every time new data is released (daily):**
+
+1. *Cumulative cases in the 5 worst counties*
+2. *Total NEW cases in the 5 worst counties*
+3. *A list of safe counties*
+4. *A text report describing the total new cases, total cumulative cases, and number of safe counties.*
+
+**Build this analysis in such a way that running it will extract the most current data straight from the NY-Times URL and the state name and date are parameters that can be changed allowing this report to be run for other states/dates.**
+```{r}
+library(dplyr)
+my.date <- as.Date("2022-02-01")
+my.state <- "Colorado"
+colorado_data <- data %>%
+  filter(state == "Colorado") %>%
+  group_by(county) %>%
+  arrange(county, date) %>%
+  mutate(
+    daily_new_cases = cases - lag(cases, default = first(cases)),
+    daily_new_deaths = deaths - lag(deaths, default = first(deaths)) 
+  ) %>%
+  ungroup()
+today_date <- my.date
+top_cumulative_cases <- colorado_data %>%
+  filter(date == today_date) %>%
+  group_by(county) %>%
+  summarize(cumulative_cases = max(cases)) %>%
+  arrange(desc(cumulative_cases)) %>%
+  head(5)
+print(top_cumulative_cases)
+top_new_cases <- colorado_data %>%
+  filter(date == today_date) %>%
+  group_by(county) %>%
+  summarize(new_cases = sum(daily_new_cases, na.rm = TRUE)) %>%
+  arrange(desc(new_cases)) %>%
+  head(5)
+print(top_new_cases)
+```
+
+## Question 3: Normalizing Data
+
+**Raw count data can be deceiving given the wide range of populations in Colorado countries. To help us normalize data counts, we need supplemental population data to be added. Population data is offered by the Census. Please read in this data. You notice that the COVID data provides a 5 digit character FIP code representing the state in the first 2 digits and the county in the last 3. In the population data, the STATE and COUNTY FIP identifiers are read in as numerics. Make the two datasets compatible. 
