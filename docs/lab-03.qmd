@@ -1,6 +1,6 @@
 ---
 title: "Lab 3: COVID-19 Wrangling"
-subtitle: "Ecosystem Science and Sustainability 330 "
+subtitle: "Ecosystem Science and Sustainability 330"
 author:
   - name: "[Hanna Velicer](https://hvelicer.github.io/)"
     email: "hvelicer@colostate.edu"
